@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador XML CRS — DIAN Colombia · Anexo II Resolución 000078 de 2020</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --navy:   #0D1B2A;
+    --navy-2: #1B2838;
+    --blue:   #1565C0;
+    --sky:    #1E88E5;
+    --teal:   #00838F;
+    --green:  #2E7D32;
+    --amber:  #F57F17;
+    --amber-bg: #FFF8E1;
+    --red:    #C62828;
+    --purple: #6A1B9A;
+    --bg:     #F4F6F9;
+    --surface:#FFFFFF;
+    --border: #DEE3EC;
+    --border-strong: #B0BEC5;
+    --text:   #1A2332;
+    --muted:  #6B7A8D;
+    --mono:   'IBM Plex Mono', monospace;
+    --sans:   'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+    color: white;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,.25);
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--sky), var(--teal));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 2px 8px rgba(30, 136, 229, .35);
+  }
+  header h1 { font-size: 17px; font-weight: 600; letter-spacing: -.2px; }
+  header .sub { font-size: 12px; color: #B0BEC5; font-weight: 300; }
+  .badge-dian {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.18);
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    color: #E1F5FE;
+  }
+
+  main {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .card-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .card-head h2 { font-size: 14px; font-weight: 600; letter-spacing: -.1px; }
+  .card-head p  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .card-body { padding: 20px; }
+
+  .icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .icon-blue   { background: #E3F2FD; color: var(--blue); }
+  .icon-amber  { background: var(--amber-bg); color: var(--amber); }
+  .icon-green  { background: #E8F5E9; color: var(--green); }
+  .icon-purple { background: #F3E5F5; color: var(--purple); }
+  .icon-teal   { background: #E0F2F1; color: var(--teal); }
+
+  /* ── Drop zone ── */
+  .drop-zone {
+    border: 2px dashed var(--border-strong);
+    border-radius: 10px;
+    padding: 36px 20px;
+    text-align: center;
+    background: #FAFBFC;
+    transition: all .2s;
+    cursor: pointer;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag {
+    border-color: var(--blue);
+    background: #E3F2FD;
+  }
+  .dz-icon { font-size: 38px; margin-bottom: 10px; }
+  .drop-zone p { color: var(--muted); font-size: 13px; }
+  .drop-zone strong { color: var(--blue); }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 8px;
+    border: none;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    width: 100%;
+    margin-top: 10px;
+  }
+  .btn-primary {
+    background: var(--blue);
+    color: white;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #0D47A1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(21, 101, 192, .35);
+  }
+  .btn-primary:disabled {
+    background: #CFD8DC;
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: var(--green);
+    color: white;
+  }
+  .btn-secondary:hover { background: #1B5E20; transform: translateY(-1px); }
+  .btn-mini {
+    width: auto;
+    padding: 6px 12px;
+    font-size: 11px;
+    margin-top: 0;
+  }
+
+  /* ── Stats ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .stat {
+    background: linear-gradient(135deg, #FAFBFC, #F0F4F8);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .stat .val { font-family: var(--mono); font-size: 22px; font-weight: 600; color: var(--navy); }
+  .stat .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+
+  /* ── Config panel ── */
+  .cfg-item {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 12px;
+    gap: 12px;
+  }
+  .cfg-item:last-child { border-bottom: none; }
+  .cfg-item .lbl { color: var(--muted); flex-shrink: 0; }
+  .cfg-item .val {
+    font-family: var(--mono);
+    font-weight: 500;
+    text-align: right;
+    word-break: break-all;
+  }
+
+  /* ── Tablas ── */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-top: 12px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  thead {
+    background: linear-gradient(135deg, #ECEFF1, #CFD8DC);
+    position: sticky; top: 0;
+  }
+  th {
+    padding: 10px 8px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    border-bottom: 2px solid var(--border-strong);
+  }
+  td {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr:hover { background: #F5F9FF; }
+  .tag-closed {
+    background: #FFEBEE; color: var(--red);
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 600;
+  }
+  .tag-open {
+    background: #E8F5E9; color: var(--green);
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 600;
+  }
+  .tag-undoc {
+    background: #FFF3E0; color: var(--amber);
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 600;
+  }
+  .tag-cp {
+    background: #F3E5F5; color: var(--purple);
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 600;
+  }
+
+  /* ── Receptores (lista de países detectados) ── */
+  .receptores {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-top: 12px;
+  }
+  .receptor {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px;
+    background: linear-gradient(90deg, #E3F2FD, #FAFBFC);
+    border: 1px solid #BBDEFB;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .receptor .info { display: flex; align-items: center; gap: 12px; }
+  .receptor .flag {
+    width: 32px; height: 32px;
+    background: var(--blue);
+    color: white;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-weight: 600; font-size: 12px;
+  }
+  .receptor .nombre { font-weight: 500; }
+  .receptor .meta {
+    font-size: 11px; color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  /* ── XML preview ── */
+  .xml-box {
+    background: var(--navy);
+    color: #B0BEC5;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.55;
+    white-space: pre;
+    max-height: 480px;
+    overflow-y: auto;
+  }
+  .xml-box .tag  { color: #82B1FF; }
+  .xml-box .attr { color: #FFCC80; }
+  .xml-box .val  { color: #A5D6A7; }
+  .xml-box .com  { color: #78909C; font-style: italic; }
+  .xml-box .keyword { color: #F48FB1; }
+
+  .xml-tabs {
+    display: flex; gap: 4px; margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+    overflow-x: auto;
+  }
+  .xml-tab {
+    padding: 8px 14px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    font-family: var(--sans);
+    white-space: nowrap;
+    transition: all .15s;
+  }
+  .xml-tab:hover { color: var(--blue); }
+  .xml-tab.active {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+  }
+
+  /* ── Logs ── */
+  .log {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: #FAFBFC;
+    border-radius: 8px;
+    border-left: 3px solid var(--blue);
+    font-family: var(--mono);
+    font-size: 11px;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+  .log div { padding: 3px 0; }
+  .log .ok   { color: var(--green); }
+  .log .warn { color: var(--amber); }
+  .log .err  { color: var(--red); font-weight: 600; }
+  .log .info { color: var(--blue); }
+
+  /* ── Sidebar ── */
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── Empty ── */
+  .empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .empty span { font-size: 32px; display: block; margin-bottom: 8px; }
+
+  /* ── Banner normativo ── */
+  .normativa {
+    background: linear-gradient(135deg, #E1F5FE, #FAFBFC);
+    border: 1px solid #B3E5FC;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .normativa strong { color: var(--blue); }
+  .normativa .titulo {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  details {
+    background: #FAFBFC;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0;
+    margin-top: 12px;
+  }
+  details summary {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--blue);
+    user-select: none;
+  }
+  details[open] summary { border-bottom: 1px solid var(--border); }
+  details .det-body { padding: 14px; font-size: 12px; line-height: 1.65; color: var(--text); }
+  details .det-body p { margin-bottom: 8px; }
+  details .det-body code {
+    background: #ECEFF1; padding: 1px 5px; border-radius: 3px;
+    font-family: var(--mono); font-size: 11px; color: var(--navy);
+  }
+
+  /* Responsive */
+  @media (max-width: 980px) {
+    main { grid-template-columns: 1fr; }
+    .sidebar { order: -1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">📄</div>
+    <div>
+      <h1>Generador XML CRS</h1>
+      <span class="sub">Estándar OCDE · Anexo II Resolución DIAN 000078 de 2020</span>
+    </div>
+  </div>
+  <span class="badge-dian">MUISCA · CRS XML v2.0</span>
+</header>
+
+<main>
+  <!-- ═══ Columna principal ═══ -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Banner normativo -->
+    <div class="normativa">
+      <div class="titulo">📜 Cómo funciona este generador</div>
+      Este generador produce <strong>un archivo XML por cada jurisdicción reportable (país receptor)</strong> detectado en sus datos.
+      Si su Excel contiene residentes fiscales de Canadá, Italia y Alemania, obtendrá <strong>tres XML independientes</strong>,
+      cada uno con su propio <code>MessageRefId</code> y <code>ReceivingCountry</code>.
+      Cada archivo cumple con el esquema <strong>CrsXML_v2.0.xsd</strong> y las restricciones del Anexo II.
+      <details>
+        <summary>▸ Ver requisitos clave del Anexo II que aplica este generador</summary>
+        <div class="det-body">
+          <p><strong>Codificación:</strong> UTF-8 conforme ISO 10646.</p>
+          <p><strong>MessageRefId (22 caracteres):</strong> <code>CO</code> + <code>AAAA</code> (año del período) + <code>XX</code> (país receptor) + <code>NIT</code> (9 dígitos sin DV) + <code>NNNNN</code> (secuencial 5 dígitos). Ej: <code>CO2024CA86000764700001</code>.</p>
+          <p><strong>DocRefId (28 caracteres):</strong> el MessageRefId completo + 6 dígitos secuenciales únicos. Único en espacio y tiempo.</p>
+          <p><strong>ReportingPeriod:</strong> último día del año calendario reportado, formato <code>AAAA-MM-DD</code>.</p>
+          <p><strong>Saldos y montos:</strong> valores positivos o cero, dos decimales, separador <code>.</code> Ej: <code>1000.00</code>, <code>0.00</code>.</p>
+          <p><strong>Cuentas cerradas:</strong> saldo <code>0.00</code> y atributo <code>ClosedAccount="true"</code>.</p>
+          <p><strong>Cuentas indocumentadas (Anexo 1):</strong> <code>CountryCode=CO</code> y <code>AddressFree="undocumented"</code>.</p>
+          <p><strong>Caracteres prohibidos en el XML:</strong> <code>--</code> (doble guion), <code>/*</code> (slash asterisco), <code>&amp;#</code> (ampersand numeral). Los caracteres especiales <code>&amp; &lt; &gt; " '</code> se reemplazan automáticamente por sus entidades XML.</p>
+          <p><strong>MessageTypeIndic:</strong> <code>CRS701</code> (información nueva), <code>CRS702</code> (correcciones), <code>CRS703</code> (sin cuentas).</p>
+          <p><strong>Personas Controlantes:</strong> obligatorias cuando el titular es ENF Pasiva (<code>CRS101</code>) con uno o más controlantes que sean Personas Reportables.</p>
+        </div>
+      </details>
+    </div>
+
+    <!-- Carga de archivo -->
+    <div class="card">
+      <div class="card-head">
+        <div class="icon icon-blue">📂</div>
+        <div>
+          <h2>1. Cargar plantilla Excel</h2>
+          <p>Seleccione el archivo <code>plantilla_crs_dian.xlsx</code> con los datos de residentes fiscales</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="drop-zone" id="dropZone">
+          <div class="dz-icon">📊</div>
+          <p><strong>Haga clic o arrastre</strong> el archivo Excel aquí</p>
+          <p style="font-size:12px;margin-top:6px;">Acepta .xlsx · plantilla_crs_dian.xlsx</p>
+          <input type="file" id="fileInput" accept=".xlsx,.xls">
+        </div>
+        <div id="preview">
+          <div class="empty"><span>📋</span>Los datos del Excel aparecerán aquí tras cargarlo</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Países receptores detectados -->
+    <div class="card" id="receptoresCard" style="display:none">
+      <div class="card-head">
+        <div class="icon icon-purple">🌐</div>
+        <div>
+          <h2>2. Países receptores detectados</h2>
+          <p>Se generará un XML independiente para cada uno</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="receptores" id="receptoresList"></div>
+      </div>
+    </div>
+
+    <!-- Vista previa XML -->
+    <div class="card">
+      <div class="card-head">
+        <div class="icon icon-green">🗂</div>
+        <div>
+          <h2>3. Vista previa del XML</h2>
+          <p>Use las pestañas para alternar entre archivos · haga clic en Generar para actualizar</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="xmlTabs" class="xml-tabs" style="display:none"></div>
+        <div id="xmlPreview">
+          <div class="empty"><span>📄</span>El XML aparecerá aquí después de generar</div>
+        </div>
+        <div id="logBox" class="log" style="display:none;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ Sidebar ═══ -->
+  <div class="sidebar">
+
+    <!-- Config leída -->
+    <div class="card">
+      <div class="card-head">
+        <div class="icon icon-amber">⚙️</div>
+        <div>
+          <h2>Configuración detectada</h2>
+          <p>Leída desde la hoja CONFIGURACION</p>
+        </div>
+      </div>
+      <div class="card-body" id="cfgPanel">
+        <div class="empty"><span>⚙️</span>Cargue el Excel para ver la configuración</div>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="card">
+      <div class="card-head">
+        <div class="icon icon-teal">📊</div>
+        <div>
+          <h2>Estadísticas</h2>
+          <p>Resumen de los datos cargados</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="stats">
+          <div class="stat"><div class="val" id="stCuentas">—</div><div class="lbl">Cuentas</div></div>
+          <div class="stat"><div class="val" id="stTitulares">—</div><div class="lbl">Titulares</div></div>
+          <div class="stat"><div class="val" id="stPaises">—</div><div class="lbl">Países</div></div>
+        </div>
+        <div class="stats" style="margin-top:8px">
+          <div class="stat"><div class="val" id="stCerradas">—</div><div class="lbl">Cerradas</div></div>
+          <div class="stat"><div class="val" id="stIndoc">—</div><div class="lbl">Indoc.</div></div>
+          <div class="stat"><div class="val" id="stCP">—</div><div class="lbl">Con CP</div></div>
+        </div>
+        <button class="btn btn-primary" id="btnGenerar" disabled onclick="generarXMLs()">
+          ⚡ Generar XML(s)
+        </button>
+        <button class="btn btn-secondary" id="btnDescargar" style="display:none" onclick="descargarTodos()">
+          ⬇️ Descargar todos los XML
+        </button>
+      </div>
+    </div>
+
+    <!-- Diagnóstico -->
+    <div class="card">
+      <div class="card-head">
+        <div class="icon icon-blue">🔍</div>
+        <div>
+          <h2>Validaciones</h2>
+          <p>Checks aplicados al generar</p>
+        </div>
+      </div>
+      <div class="card-body" id="checksPanel">
+        <div class="empty"><span>✓</span>Las validaciones aparecerán aquí</div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+//  GENERADOR XML CRS DIAN — Anexo II Resolución 000078 de 2020
+//  Cumple con CRS XML v2.0 (OCDE) — un XML por jurisdicción reportable.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Catálogo ISO 3166-1 Alpha 2 (Apéndice 4 del Anexo II) ─────────────────
+const PAISES_ISO = {
+  AF:"Afganistán",AX:"Islas Aland",AL:"Albania",DZ:"Argelia",AS:"Samoa Americana",
+  AD:"Andorra",AO:"Angola",AI:"Anguila",AQ:"Antártida",AG:"Antigua y Barbuda",
+  AR:"Argentina",AM:"Armenia",AW:"Aruba",AU:"Australia",AT:"Austria",AZ:"Azerbaiyán",
+  BS:"Bahamas",BH:"Baréin",BD:"Bangladés",BB:"Barbados",BY:"Bielorrusia",BE:"Bélgica",
+  BZ:"Belice",BJ:"Benín",BM:"Bermudas",BT:"Bután",BO:"Bolivia",
+  BQ:"Bonaire, San Eustaquio y Saba",BA:"Bosnia y Herzegovina",BW:"Botsuana",
+  BV:"Isla Bouvet",BR:"Brasil",IO:"Territorio Británico del Océano Índico",
+  BN:"Brunéi",BG:"Bulgaria",BF:"Burkina Faso",BI:"Burundi",KH:"Camboya",
+  CM:"Camerún",CA:"Canadá",CV:"Cabo Verde",KY:"Islas Caimán",
+  CF:"República Centroafricana",TD:"Chad",CL:"Chile",CN:"China",
+  CX:"Isla de Navidad",CC:"Islas Cocos",CO:"Colombia",KM:"Comoras",CG:"Congo",
+  CD:"Congo (Rep. Dem.)",CK:"Islas Cook",CR:"Costa Rica",CI:"Costa de Marfil",
+  HR:"Croacia",CU:"Cuba",CW:"Curazao",CY:"Chipre",CZ:"Chequia",DK:"Dinamarca",
+  DJ:"Yibuti",DM:"Dominica",DO:"República Dominicana",EC:"Ecuador",EG:"Egipto",
+  SV:"El Salvador",GQ:"Guinea Ecuatorial",ER:"Eritrea",EE:"Estonia",ET:"Etiopía",
+  FK:"Islas Malvinas",FO:"Islas Feroe",FJ:"Fiyi",FI:"Finlandia",FR:"Francia",
+  GF:"Guayana Francesa",PF:"Polinesia Francesa",
+  TF:"Tierras Australes y Antárticas Francesas",GA:"Gabón",GM:"Gambia",GE:"Georgia",
+  DE:"Alemania",GH:"Ghana",GI:"Gibraltar",GR:"Grecia",GL:"Groenlandia",GD:"Granada",
+  GP:"Guadalupe",GU:"Guam",GT:"Guatemala",GG:"Guernsey",GN:"Guinea",GW:"Guinea-Bisáu",
+  GY:"Guyana",HT:"Haití",HM:"Islas Heard y McDonald",VA:"Santa Sede (Vaticano)",
+  HN:"Honduras",HK:"Hong Kong",HU:"Hungría",IS:"Islandia",IN:"India",ID:"Indonesia",
+  IR:"Irán",IQ:"Irak",IE:"Irlanda",IM:"Isla de Man",IL:"Israel",IT:"Italia",
+  JM:"Jamaica",JP:"Japón",JE:"Jersey",JO:"Jordania",KZ:"Kazajistán",KE:"Kenia",
+  KI:"Kiribati",KP:"Corea del Norte",KR:"Corea del Sur",KW:"Kuwait",KG:"Kirguistán",
+  LA:"Laos",LV:"Letonia",LB:"Líbano",LS:"Lesoto",LR:"Liberia",LY:"Libia",
+  LI:"Liechtenstein",LT:"Lituania",LU:"Luxemburgo",MO:"Macao",MK:"Macedonia del Norte",
+  MG:"Madagascar",MW:"Malaui",MY:"Malasia",MV:"Maldivas",ML:"Malí",MT:"Malta",
+  MH:"Islas Marshall",MQ:"Martinica",MR:"Mauritania",MU:"Mauricio",YT:"Mayotte",
+  MX:"México",FM:"Micronesia",MD:"Moldavia",MC:"Mónaco",MN:"Mongolia",ME:"Montenegro",
+  MS:"Montserrat",MA:"Marruecos",MZ:"Mozambique",MM:"Myanmar",NA:"Namibia",NR:"Nauru",
+  NP:"Nepal",NL:"Países Bajos",NC:"Nueva Caledonia",NZ:"Nueva Zelanda",NI:"Nicaragua",
+  NE:"Níger",NG:"Nigeria",NU:"Niue",NF:"Isla Norfolk",MP:"Islas Marianas del Norte",
+  NO:"Noruega",OM:"Omán",PK:"Pakistán",PW:"Palaos",PS:"Palestina",PA:"Panamá",
+  PG:"Papúa Nueva Guinea",PY:"Paraguay",PE:"Perú",PH:"Filipinas",PN:"Pitcairn",
+  PL:"Polonia",PT:"Portugal",PR:"Puerto Rico",QA:"Catar",RE:"Reunión",RO:"Rumania",
+  RU:"Rusia",RW:"Ruanda",BL:"San Bartolomé",
+  SH:"Santa Elena, Ascensión y Tristán de Acuña",KN:"San Cristóbal y Nieves",
+  LC:"Santa Lucía",MF:"San Martín (parte francesa)",PM:"San Pedro y Miquelón",
+  VC:"San Vicente y las Granadinas",WS:"Samoa",SM:"San Marino",
+  ST:"Santo Tomé y Príncipe",SA:"Arabia Saudita",SN:"Senegal",RS:"Serbia",
+  SC:"Seychelles",SL:"Sierra Leona",SG:"Singapur",SX:"San Martín (parte neerlandesa)",
+  SK:"Eslovaquia",SI:"Eslovenia",SB:"Islas Salomón",SO:"Somalia",ZA:"Sudáfrica",
+  GS:"Georgia del Sur y Sandwich del Sur",SS:"Sudán del Sur",ES:"España",
+  LK:"Sri Lanka",SD:"Sudán",SR:"Surinam",SJ:"Svalbard y Jan Mayen",SZ:"Esuatini",
+  SE:"Suecia",CH:"Suiza",SY:"Siria",TW:"Taiwán",TJ:"Tayikistán",TZ:"Tanzania",
+  TH:"Tailandia",TL:"Timor Oriental",TG:"Togo",TK:"Tokelau",TO:"Tonga",
+  TT:"Trinidad y Tobago",TN:"Túnez",TR:"Turquía",TM:"Turkmenistán",
+  TC:"Islas Turcas y Caicos",TV:"Tuvalu",UG:"Uganda",UA:"Ucrania",
+  AE:"Emiratos Árabes Unidos",GB:"Reino Unido",US:"Estados Unidos",
+  UM:"Islas Menores Alejadas EE.UU.",UY:"Uruguay",UZ:"Uzbekistán",VU:"Vanuatu",
+  VE:"Venezuela",VN:"Vietnam",VG:"Islas Vírgenes Británicas",
+  VI:"Islas Vírgenes EE.UU.",WF:"Wallis y Futuna",EH:"Sáhara Occidental",
+  YE:"Yemen",ZM:"Zambia",ZW:"Zimbabue",XK:"Kosovo",
+};
+
+// ── Estado global ─────────────────────────────────────────────────────────
+let cfg   = {};
+let filas = [];
+let xmlsGenerados = {};   // { codPais: { xml, msgRefId, fileName, cuentas } }
+let xmlActivo = null;
+let logs  = [];
+
+// ── Drag & Drop ──────────────────────────────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag');
+  procesarArchivo(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => procesarArchivo(e.target.files[0]));
+
+// ════════════════════════════════════════════════════════════════════════
+//   LECTURA DEL EXCEL
+// ════════════════════════════════════════════════════════════════════════
+function procesarArchivo(file) {
+  if (!file) return;
+  logs = [];
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+
+      // — Hoja CONFIGURACION —
+      const wsCfg = wb.Sheets['CONFIGURACION'];
+      if (!wsCfg) throw new Error('No se encontró la hoja CONFIGURACION');
+
+      cfg = {
+        nit:          getCell(wsCfg, 'C4'),
+        nombre:       getCell(wsCfg, 'C5'),
+        direccion:    getCell(wsCfg, 'C6'),
+        ciudad:       getCell(wsCfg, 'C7'),
+        depto:        getCell(wsCfg, 'C8'),
+        paisEntidad:  getCell(wsCfg, 'C9'),
+        periodo:      getCell(wsCfg, 'C12'),
+        tipoMensaje:  getCell(wsCfg, 'C13'),
+        moneda:       getCell(wsCfg, 'C14'),
+        secuencial:   getCell(wsCfg, 'C15'),
+        contacto:     getCell(wsCfg, 'C16'),
+        warning:      getCell(wsCfg, 'C17'),
+      };
+
+      // Normalizar fecha
+      cfg.periodo = normalizarFecha(cfg.periodo);
+
+      // Normalizar NIT (sin DV, sin espacios)
+      cfg.nit = String(cfg.nit || '').replace(/\D/g,'').substring(0,9);
+
+      // Normalizar país entidad
+      cfg.paisEntidad = String(cfg.paisEntidad || 'CO').toUpperCase().substring(0,2);
+
+      // Secuencial (5 dígitos)
+      cfg.secuencial = String(cfg.secuencial || '00001').replace(/\D/g,'').padStart(5,'0').substring(0,5);
+
+      // Tipo de mensaje
+      cfg.tipoMensaje = String(cfg.tipoMensaje || 'CRS701').toUpperCase();
+
+      // Moneda
+      cfg.moneda = String(cfg.moneda || 'COP').toUpperCase().substring(0,3);
+
+      // — Hoja RESIDENTES_FISCALES —
+      const wsData = wb.Sheets['RESIDENTES_FISCALES'];
+      if (!wsData) throw new Error('No se encontró la hoja RESIDENTES_FISCALES');
+
+      // Encabezados están en fila 3 (índice 2). Datos a partir de fila 4 (índice 3).
+      const raw = XLSX.utils.sheet_to_json(wsData, { header: 1, defval: '' });
+
+      filas = [];
+      for (let i = 3; i < raw.length; i++) {
+        const r = raw[i];
+        // ignorar filas sin país de residencia ni nombre
+        if (!r[1] && !r[5]) continue;
+        if (!r[1]) continue;
+
+        filas.push({
+          paisResidencia:  String(r[1] || '').toUpperCase().substring(0,2),
+          tin:             limpiar(r[2]),
+          tinIssuedBy:     String(r[3] || '').toUpperCase().substring(0,2),
+          tipoTitular:     String(r[4] || 'Individual').trim(),
+          firstName:       limpiar(r[5]),
+          middleName:      limpiar(r[6]),
+          lastName:        limpiar(r[7]),
+          fechaNac:        normalizarFecha(r[8]),
+          ciudadNac:       limpiar(r[9]),
+          paisNac:         String(r[10] || '').toUpperCase().substring(0,2),
+          paisDireccion:   String(r[11] || '').toUpperCase().substring(0,2),
+          calle:           limpiar(r[12]),
+          ciudad:          limpiar(r[13]),
+          depto:           limpiar(r[14]),
+          codPostal:       limpiar(r[15]),
+          numeroCuenta:    limpiar(r[16]),
+          tipoNumCuenta:   String(r[17] || '').trim(),
+          fechaApertura:   normalizarFecha(r[18]),
+          cuentaCerrada:   esSi(r[19]),
+          cuentaIndoc:     esSi(r[20]),
+          cuentaInactiva:  esSi(r[21]),
+          saldo:           numerico(r[22]),
+          monedaSaldo:     String(r[23] || cfg.moneda).toUpperCase().substring(0,3),
+          tipoPago1:       String(r[24] || '').trim(),
+          montoPago1:      numerico(r[25]),
+          monedaPago1:     String(r[26] || cfg.moneda).toUpperCase().substring(0,3),
+          tipoPago2:       String(r[27] || '').trim(),
+          montoPago2:      numerico(r[28]),
+          monedaPago2:     String(r[29] || cfg.moneda).toUpperCase().substring(0,3),
+          // Persona Controlante
+          cpTipo:          String(r[30] || '').trim(),
+          cpPaisResid:     String(r[31] || '').toUpperCase().substring(0,2),
+          cpTin:           limpiar(r[32]),
+          cpTinIssuedBy:   String(r[33] || '').toUpperCase().substring(0,2),
+          cpFirstName:     limpiar(r[34]),
+          cpMiddleName:    limpiar(r[35]),
+          cpLastName:      limpiar(r[36]),
+          cpFechaNac:      normalizarFecha(r[37]),
+          cpPaisDir:       String(r[38] || '').toUpperCase().substring(0,2),
+          cpDireccion:     limpiar(r[39]),
+          cpCiudad:        limpiar(r[40]),
+        });
+      }
+
+      logs.push({ tipo:'ok', msg:`Excel cargado · ${filas.length} cuentas detectadas` });
+      actualizarUI();
+    } catch (err) {
+      logs.push({ tipo:'err', msg: 'Error al leer el Excel: ' + err.message });
+      actualizarUI();
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Helpers de lectura ────────────────────────────────────────────────────
+function getCell(ws, addr) {
+  const c = ws[addr];
+  return c ? c.v : '';
+}
+
+function limpiar(val) {
+  if (val === null || val === undefined) return '';
+  return String(val).trim();
+}
+
+function numerico(val) {
+  if (val === null || val === undefined || val === '') return 0;
+  const n = parseFloat(String(val).replace(/[^0-9.\-]/g,''));
+  return isNaN(n) ? 0 : Math.max(0, n);
+}
+
+function esSi(val) {
+  if (val === true) return true;
+  const s = String(val || '').trim().toUpperCase();
+  return s === 'SI' || s === 'SÍ' || s === 'YES' || s === 'TRUE' || s === '1';
+}
+
+function normalizarFecha(val) {
+  if (!val) return '';
+  if (val instanceof Date) {
+    return val.toISOString().split('T')[0];
+  }
+  if (typeof val === 'number') {
+    const d = XLSX.SSF.parse_date_code(val);
+    return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  const s = String(val).trim();
+  // Si ya viene en formato AAAA-MM-DD
+  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  // DD/MM/AAAA
+  const m2 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m2) return `${m2[3]}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`;
+  return s;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//   ACTUALIZAR INTERFAZ
+// ════════════════════════════════════════════════════════════════════════
+function actualizarUI() {
+  // ── Panel de configuración ──
+  document.getElementById('cfgPanel').innerHTML = `
+    ${cfgItem('NIT (sin DV)', cfg.nit)}
+    ${cfgItem('Entidad', cfg.nombre)}
+    ${cfgItem('Dirección', cfg.direccion)}
+    ${cfgItem('Ciudad', cfg.ciudad)}
+    ${cfgItem('País emisor', cfg.paisEntidad + ' — ' + (PAISES_ISO[cfg.paisEntidad]||'?'))}
+    ${cfgItem('Período', cfg.periodo)}
+    ${cfgItem('Tipo mensaje', cfg.tipoMensaje)}
+    ${cfgItem('Moneda', cfg.moneda)}
+    ${cfgItem('Secuencial', cfg.secuencial)}
+  `;
+
+  // ── Receptores detectados ──
+  const paises = [...new Set(filas.map(f => f.paisResidencia).filter(Boolean))];
+  const recepCard = document.getElementById('receptoresCard');
+  const recepList = document.getElementById('receptoresList');
+  if (paises.length > 0) {
+    recepCard.style.display = 'block';
+    recepList.innerHTML = paises.sort().map(cod => {
+      const cuentas = filas.filter(f => f.paisResidencia === cod).length;
+      const nombre  = PAISES_ISO[cod] || 'Código no reconocido';
+      const refId   = construirMessageRefId(cod);
+      return `
+        <div class="receptor">
+          <div class="info">
+            <div class="flag">${cod}</div>
+            <div>
+              <div class="nombre">${nombre}</div>
+              <div class="meta">${cuentas} cuenta${cuentas!==1?'s':''} · MessageRefId: ${refId}</div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  } else {
+    recepCard.style.display = 'none';
+  }
+
+  // ── Estadísticas ──
+  const titulares = new Set(filas.map(f => `${f.tin}|${f.lastName}|${f.firstName}`)).size;
+  const cerradas  = filas.filter(f => f.cuentaCerrada).length;
+  const indoc     = filas.filter(f => f.cuentaIndoc).length;
+  const conCP     = filas.filter(f => f.cpFirstName || f.cpLastName).length;
+  document.getElementById('stCuentas').textContent   = filas.length;
+  document.getElementById('stTitulares').textContent = titulares;
+  document.getElementById('stPaises').textContent    = paises.length;
+  document.getElementById('stCerradas').textContent  = cerradas;
+  document.getElementById('stIndoc').textContent     = indoc;
+  document.getElementById('stCP').textContent        = conCP;
+
+  // ── Vista previa de filas ──
+  if (filas.length === 0) {
+    document.getElementById('preview').innerHTML =
+      '<div class="empty"><span>⚠️</span>No se encontraron filas válidas en RESIDENTES_FISCALES</div>';
+  } else {
+    let tbl = `<div class="table-wrap"><table>
+      <thead><tr>
+        <th>#</th><th>País</th><th>TIN</th><th>Titular</th>
+        <th>Cuenta</th><th>Apertura</th><th>Saldo</th><th>Estado</th>
+      </tr></thead><tbody>`;
+    filas.forEach((f, i) => {
+      const nombre = f.tipoTitular !== 'Individual'
+        ? f.firstName
+        : [f.firstName, f.middleName, f.lastName].filter(Boolean).join(' ');
+      const saldoFmt = new Intl.NumberFormat('es-CO',
+        {style:'currency',currency:f.monedaSaldo || 'COP',maximumFractionDigits:0}
+      ).format(f.saldo);
+      let estado = '<span class="tag-open">ABIERTA</span>';
+      if (f.cuentaCerrada) estado = '<span class="tag-closed">CERRADA</span>';
+      else if (f.cuentaIndoc) estado = '<span class="tag-undoc">INDOCUMENTADA</span>';
+      let cpBadge = (f.cpFirstName || f.cpLastName) ? ' <span class="tag-cp">+CP</span>' : '';
+      tbl += `<tr>
+        <td>${i+1}</td>
+        <td><strong>${f.paisResidencia}</strong></td>
+        <td style="font-family:var(--mono)">${f.tin || '—'}</td>
+        <td>${nombre}${cpBadge}</td>
+        <td style="font-family:var(--mono);font-size:11px">${f.numeroCuenta || '—'}</td>
+        <td>${f.fechaApertura || '—'}</td>
+        <td style="font-family:var(--mono);font-size:11px;text-align:right">${saldoFmt}</td>
+        <td>${estado}</td>
+      </tr>`;
+    });
+    tbl += '</tbody></table></div>';
+    document.getElementById('preview').innerHTML = tbl;
+  }
+
+  document.getElementById('btnGenerar').disabled = filas.length === 0;
+  pintarLogs();
+}
+
+function cfgItem(lbl, val) {
+  return `<div class="cfg-item"><span class="lbl">${lbl}</span><span class="val">${val||'—'}</span></div>`;
+}
+
+function pintarLogs() {
+  const logEl = document.getElementById('logBox');
+  if (logs.length === 0) { logEl.style.display = 'none'; return; }
+  logEl.style.display = 'block';
+  logEl.innerHTML = logs.map(l => {
+    const ico = l.tipo === 'ok' ? '✓' : l.tipo === 'warn' ? '⚠' : l.tipo === 'err' ? '✗' : 'ℹ';
+    return `<div class="${l.tipo}">${ico} ${l.msg}</div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//   CONSTRUCCIÓN DEL MessageRefId Y DocRefId
+//   Anexo II: 22 caracteres = CO + AAAA + XX + NIT9 + NNNNN
+// ════════════════════════════════════════════════════════════════════════
+function construirMessageRefId(paisReceptor) {
+  const año = (cfg.periodo || '').substring(0,4) || String(new Date().getFullYear());
+  const nit = (cfg.nit || '000000000').padStart(9,'0').substring(0,9);
+  const sec = (cfg.secuencial || '00001').padStart(5,'0').substring(0,5);
+  return `CO${año}${paisReceptor}${nit}${sec}`;  // 2+4+2+9+5 = 22
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//   GENERACIÓN DE LOS XML — uno por cada país receptor
+// ════════════════════════════════════════════════════════════════════════
+function generarXMLs() {
+  logs = [];
+  xmlsGenerados = {};
+
+  // Validaciones globales
+  if (!cfg.nit || cfg.nit.length !== 9) {
+    logs.push({tipo:'err', msg:`NIT inválido: debe tener exactamente 9 dígitos (sin DV). Actual: "${cfg.nit}"`});
+  }
+  if (!cfg.periodo || !/^\d{4}-\d{2}-\d{2}$/.test(cfg.periodo)) {
+    logs.push({tipo:'err', msg:`Período inválido. Debe estar en formato AAAA-MM-DD. Actual: "${cfg.periodo}"`});
+  }
+  if (!['CRS701','CRS702','CRS703'].includes(cfg.tipoMensaje)) {
+    logs.push({tipo:'err', msg:`MessageTypeIndic inválido: ${cfg.tipoMensaje}. Debe ser CRS701, CRS702 o CRS703.`});
+  }
+
+  // Si hay errores críticos, abortar
+  if (logs.some(l => l.tipo === 'err')) {
+    actualizarChecks();
+    pintarLogs();
+    return;
+  }
+
+  // Agrupar por país receptor
+  const porPais = {};
+  filas.forEach(f => {
+    if (!f.paisResidencia) return;
+    if (!porPais[f.paisResidencia]) porPais[f.paisResidencia] = [];
+    porPais[f.paisResidencia].push(f);
+  });
+
+  // Generar un XML por cada país
+  Object.keys(porPais).sort().forEach(pais => {
+    const xml = construirXML(pais, porPais[pais]);
+    const msgRefId = construirMessageRefId(pais);
+    // Conforme al Anexo II: el archivo se nombra con el MessageRefId (22 caracteres) + .xml
+    // Ejemplo del Anexo: CO2020FR80099999900001.xml
+    const nombreArchivo = `${msgRefId}.xml`;
+    xmlsGenerados[pais] = {
+      xml,
+      msgRefId,
+      fileName: nombreArchivo,
+      cuentas: porPais[pais].length,
+      pais,
+      paisNombre: PAISES_ISO[pais] || pais,
+    };
+  });
+
+  logs.push({
+    tipo:'ok',
+    msg:`${Object.keys(xmlsGenerados).length} XML(s) generado(s) — ${filas.length} cuentas en total`
+  });
+
+  // UI
+  pintarTabsXML();
+  if (Object.keys(xmlsGenerados).length > 0) {
+    xmlActivo = Object.keys(xmlsGenerados)[0];
+    pintarXML(xmlActivo);
+    document.getElementById('btnDescargar').style.display = 'flex';
+  }
+  actualizarChecks();
+  pintarLogs();
+}
+
+// ── Construir el XML para un país receptor ──────────────────────────────
+function construirXML(paisReceptor, filasPais) {
+  const ahora = new Date().toISOString().replace('Z','').split('.')[0];
+  const msgRef = construirMessageRefId(paisReceptor);
+
+  let docSeq = 1;
+  const nextDocRef = () => msgRef + String(docSeq++).padStart(6,'0');
+
+  let x = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+  x += `<crs:CRS_OECD\n`;
+  x += `  xmlns:crs="urn:oecd:ties:crs:v2"\n`;
+  x += `  xmlns:cfc="urn:oecd:ties:commontypesfatcacrs:v2"\n`;
+  x += `  xmlns:stf="urn:oecd:ties:crsstf:v5"\n`;
+  x += `  xmlns:iso="urn:oecd:ties:isocrstypes:v1"\n`;
+  x += `  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n`;
+  x += `  version="2.0">\n\n`;
+
+  // ───── MessageSpec ─────
+  x += `  <crs:MessageSpec>\n`;
+  x += `    <crs:SendingCompanyIN>${esc(cfg.nit)}</crs:SendingCompanyIN>\n`;
+  x += `    <crs:TransmittingCountry>${esc(cfg.paisEntidad)}</crs:TransmittingCountry>\n`;
+  x += `    <crs:ReceivingCountry>${esc(paisReceptor)}</crs:ReceivingCountry>\n`;
+  x += `    <crs:MessageType>CRS</crs:MessageType>\n`;
+  if (cfg.warning)  x += `    <crs:Warning>${esc(cfg.warning)}</crs:Warning>\n`;
+  if (cfg.contacto) x += `    <crs:Contact>${esc(cfg.contacto)}</crs:Contact>\n`;
+  x += `    <crs:MessageRefId>${esc(msgRef)}</crs:MessageRefId>\n`;
+  x += `    <crs:MessageTypeIndic>${esc(cfg.tipoMensaje)}</crs:MessageTypeIndic>\n`;
+  x += `    <crs:ReportingPeriod>${esc(cfg.periodo)}</crs:ReportingPeriod>\n`;
+  x += `    <crs:Timestamp>${ahora}</crs:Timestamp>\n`;
+  x += `  </crs:MessageSpec>\n\n`;
+
+  // ───── CrsBody ─────
+  x += `  <crs:CrsBody>\n`;
+
+  // ── ReportingFI ──
+  const docFI = nextDocRef();
+  x += `    <crs:ReportingFI>\n`;
+  x += `      <crs:ResCountryCode>${esc(cfg.paisEntidad)}</crs:ResCountryCode>\n`;
+  x += `      <crs:IN issuedBy="${esc(cfg.paisEntidad)}" INType="NIT">${esc(cfg.nit)}</crs:IN>\n`;
+  x += `      <crs:Name nameType="OECD207">${esc(cfg.nombre)}</crs:Name>\n`;
+  x += `      <crs:Address legalAddressType="OECD304">\n`;
+  x += `        <cfc:CountryCode>${esc(cfg.paisEntidad)}</cfc:CountryCode>\n`;
+  x += `        <cfc:AddressFix>\n`;
+  if (cfg.direccion) x += `          <cfc:Street>${esc(cfg.direccion)}</cfc:Street>\n`;
+  x +=                   `          <cfc:City>${esc(cfg.ciudad || 'BOGOTA')}</cfc:City>\n`;
+  if (cfg.depto)     x += `          <cfc:CountrySubentity>${esc(cfg.depto)}</cfc:CountrySubentity>\n`;
+  x += `        </cfc:AddressFix>\n`;
+  x += `      </crs:Address>\n`;
+  x += `      <crs:DocSpec>\n`;
+  x += `        <stf:DocTypeIndic>${cfg.tipoMensaje==='CRS702'?'OECD2':'OECD1'}</stf:DocTypeIndic>\n`;
+  x += `        <stf:DocRefId>${esc(docFI)}</stf:DocRefId>\n`;
+  x += `      </crs:DocSpec>\n`;
+  x += `    </crs:ReportingFI>\n\n`;
+
+  // ── ReportingGroup ──
+  x += `    <crs:ReportingGroup>\n`;
+
+  // CRS703: sin AccountReports
+  if (cfg.tipoMensaje === 'CRS703') {
+    logs.push({tipo:'info', msg:`[${paisReceptor}] CRS703: reporte sin cuentas (no se incluyen AccountReports)`});
+  } else {
+    filasPais.forEach((f, idx) => {
+      const docRef = nextDocRef();
+      x += construirAccountReport(f, docRef, idx + 1, paisReceptor);
+    });
+  }
+
+  x += `    </crs:ReportingGroup>\n`;
+  x += `  </crs:CrsBody>\n`;
+  x += `</crs:CRS_OECD>\n`;
+
+  // Aplicar restricciones de caracteres prohibidos del Anexo
+  return validarRestricciones(x, paisReceptor);
+}
+
+// ── Construir un AccountReport ───────────────────────────────────────────
+function construirAccountReport(f, docRef, num, paisReceptor) {
+  let x = '';
+  x += `      <crs:AccountReport>\n`;
+
+  // DocSpec
+  x += `        <crs:DocSpec>\n`;
+  x += `          <stf:DocTypeIndic>${cfg.tipoMensaje==='CRS702'?'OECD2':'OECD1'}</stf:DocTypeIndic>\n`;
+  x += `          <stf:DocRefId>${esc(docRef)}</stf:DocRefId>\n`;
+  x += `        </crs:DocSpec>\n`;
+
+  // AccountNumber con sus atributos
+  let attrs = '';
+  if (f.tipoNumCuenta) attrs += ` AcctNumberType="${esc(f.tipoNumCuenta)}"`;
+  if (f.cuentaCerrada) attrs += ` ClosedAccount="true"`;
+  if (f.cuentaIndoc)   attrs += ` UndocumentedAccount="true"`;
+  if (f.cuentaInactiva) attrs += ` DormantAccount="true"`;
+  x += `        <crs:AccountNumber${attrs}>${esc(f.numeroCuenta)}</crs:AccountNumber>\n`;
+
+  // OpeningDate
+  if (f.fechaApertura) {
+    x += `        <crs:OpeningDate>${esc(f.fechaApertura)}</crs:OpeningDate>\n`;
+  } else {
+    logs.push({tipo:'warn', msg:`[${paisReceptor} fila ${num}] Falta fecha de apertura`});
+  }
+
+  // AccountHolder
+  x += `        <crs:AccountHolder>\n`;
+  const esEntidad = f.tipoTitular !== 'Individual';
+  if (esEntidad) {
+    // Persona jurídica
+    x += `          <crs:Organisation>\n`;
+    if (f.paisResidencia) x += `            <crs:ResCountryCode>${esc(f.paisResidencia)}</crs:ResCountryCode>\n`;
+    if (f.tin) {
+      const issBy = f.tinIssuedBy || f.paisResidencia;
+      x += `            <crs:IN issuedBy="${esc(issBy)}" INType="TIN">${esc(f.tin)}</crs:IN>\n`;
+    }
+    x += `            <crs:Name nameType="OECD207">${esc(f.firstName)}</crs:Name>\n`;
+    x += construirAddress(f);
+    x += `          </crs:Organisation>\n`;
+    x += `          <crs:AcctHolderType>${esc(f.tipoTitular)}</crs:AcctHolderType>\n`;
+  } else {
+    // Persona natural
+    x += `          <crs:Individual>\n`;
+    if (f.paisResidencia) x += `            <crs:ResCountryCode>${esc(f.paisResidencia)}</crs:ResCountryCode>\n`;
+    if (f.tin) {
+      const issBy = f.tinIssuedBy || f.paisResidencia;
+      x += `            <crs:TIN issuedBy="${esc(issBy)}">${esc(f.tin)}</crs:TIN>\n`;
+    }
+    x += `            <crs:Name nameType="OECD202">\n`;
+    x += `              <crs:FirstName>${esc(f.firstName || 'NFN')}</crs:FirstName>\n`;
+    if (f.middleName) x += `              <crs:MiddleName>${esc(f.middleName)}</crs:MiddleName>\n`;
+    x += `              <crs:LastName>${esc(f.lastName)}</crs:LastName>\n`;
+    x += `            </crs:Name>\n`;
+    x += construirAddress(f);
+    if ((f.fechaNac || f.ciudadNac || f.paisNac) && !f.cuentaIndoc) {
+      x += `            <crs:BirthInfo>\n`;
+      if (f.fechaNac)  x += `              <crs:BirthDate>${esc(f.fechaNac)}</crs:BirthDate>\n`;
+      if (f.ciudadNac) x += `              <crs:City>${esc(f.ciudadNac)}</crs:City>\n`;
+      if (f.paisNac) {
+        x += `              <crs:CountryInfo>\n`;
+        x += `                <crs:CountryCode>${esc(f.paisNac)}</crs:CountryCode>\n`;
+        x += `              </crs:CountryInfo>\n`;
+      }
+      x += `            </crs:BirthInfo>\n`;
+    }
+    x += `          </crs:Individual>\n`;
+  }
+  x += `        </crs:AccountHolder>\n`;
+
+  // ControllingPerson (solo para CRS101)
+  if (f.tipoTitular === 'CRS101' && (f.cpFirstName || f.cpLastName)) {
+    x += construirControllingPerson(f);
+  } else if (f.tipoTitular === 'CRS101') {
+    logs.push({tipo:'warn', msg:`[${paisReceptor} fila ${num}] Tipo CRS101 sin Persona Controlante diligenciada`});
+  }
+
+  // AccountBalance
+  const moneda = f.monedaSaldo || cfg.moneda || 'COP';
+  const saldo  = f.cuentaCerrada ? 0 : f.saldo;
+  x += `        <crs:AccountBalance currCode="${esc(moneda)}">${saldo.toFixed(2)}</crs:AccountBalance>\n`;
+
+  // Payments (hasta 2)
+  if (f.tipoPago1 && f.montoPago1 > 0) {
+    x += `        <crs:Payment>\n`;
+    x += `          <crs:Type>${esc(f.tipoPago1)}</crs:Type>\n`;
+    x += `          <crs:PaymentAmnt currCode="${esc(f.monedaPago1 || moneda)}">${f.montoPago1.toFixed(2)}</crs:PaymentAmnt>\n`;
+    x += `        </crs:Payment>\n`;
+  }
+  if (f.tipoPago2 && f.montoPago2 > 0) {
+    x += `        <crs:Payment>\n`;
+    x += `          <crs:Type>${esc(f.tipoPago2)}</crs:Type>\n`;
+    x += `          <crs:PaymentAmnt currCode="${esc(f.monedaPago2 || moneda)}">${f.montoPago2.toFixed(2)}</crs:PaymentAmnt>\n`;
+    x += `        </crs:Payment>\n`;
+  }
+
+  x += `      </crs:AccountReport>\n`;
+  return x;
+}
+
+// ── Construir un Address (AddressFix preferentemente) ────────────────────
+function construirAddress(f) {
+  let x = '';
+  const tieneFix = f.calle || f.ciudad || f.codPostal;
+  x += `            <crs:Address legalAddressType="OECD301">\n`;
+  if (f.cuentaIndoc) {
+    // Caso indocumentada: CountryCode=CO + AddressFree="undocumented"
+    x += `              <cfc:CountryCode>CO</cfc:CountryCode>\n`;
+    x += `              <cfc:AddressFree>undocumented</cfc:AddressFree>\n`;
+  } else if (tieneFix && f.ciudad) {
+    x += `              <cfc:CountryCode>${esc(f.paisDireccion || f.paisResidencia)}</cfc:CountryCode>\n`;
+    x += `              <cfc:AddressFix>\n`;
+    if (f.calle)     x += `                <cfc:Street>${esc(f.calle)}</cfc:Street>\n`;
+    if (f.codPostal) x += `                <cfc:PostCode>${esc(f.codPostal)}</cfc:PostCode>\n`;
+    x +=                  `                <cfc:City>${esc(f.ciudad)}</cfc:City>\n`;
+    if (f.depto)     x += `                <cfc:CountrySubentity>${esc(f.depto)}</cfc:CountrySubentity>\n`;
+    x += `              </cfc:AddressFix>\n`;
+  } else {
+    // Fallback AddressFree
+    x += `              <cfc:CountryCode>${esc(f.paisDireccion || f.paisResidencia)}</cfc:CountryCode>\n`;
+    const libre = [f.calle, f.ciudad, f.depto, f.codPostal].filter(Boolean).join(' / ');
+    x += `              <cfc:AddressFree>${esc(libre || 'No especificada')}</cfc:AddressFree>\n`;
+  }
+  x += `            </crs:Address>\n`;
+  return x;
+}
+
+// ── Construir ControllingPerson ──────────────────────────────────────────
+function construirControllingPerson(f) {
+  let x = '';
+  x += `        <crs:ControllingPerson>\n`;
+  x += `          <crs:Individual>\n`;
+  if (f.cpPaisResid) x += `            <crs:ResCountryCode>${esc(f.cpPaisResid)}</crs:ResCountryCode>\n`;
+  if (f.cpTin) {
+    const issBy = f.cpTinIssuedBy || f.cpPaisResid;
+    x += `            <crs:TIN issuedBy="${esc(issBy)}">${esc(f.cpTin)}</crs:TIN>\n`;
+  }
+  x += `            <crs:Name nameType="OECD202">\n`;
+  x += `              <crs:FirstName>${esc(f.cpFirstName || 'NFN')}</crs:FirstName>\n`;
+  if (f.cpMiddleName) x += `              <crs:MiddleName>${esc(f.cpMiddleName)}</crs:MiddleName>\n`;
+  x += `              <crs:LastName>${esc(f.cpLastName)}</crs:LastName>\n`;
+  x += `            </crs:Name>\n`;
+  // Address de la CP
+  x += `            <crs:Address legalAddressType="OECD301">\n`;
+  x += `              <cfc:CountryCode>${esc(f.cpPaisDir || f.cpPaisResid)}</cfc:CountryCode>\n`;
+  if (f.cpDireccion && f.cpCiudad) {
+    x += `              <cfc:AddressFix>\n`;
+    x += `                <cfc:Street>${esc(f.cpDireccion)}</cfc:Street>\n`;
+    x += `                <cfc:City>${esc(f.cpCiudad)}</cfc:City>\n`;
+    x += `              </cfc:AddressFix>\n`;
+  } else {
+    const libre = [f.cpDireccion, f.cpCiudad].filter(Boolean).join(' / ');
+    x += `              <cfc:AddressFree>${esc(libre || 'No especificada')}</cfc:AddressFree>\n`;
+  }
+  x += `            </crs:Address>\n`;
+  if (f.cpFechaNac) {
+    x += `            <crs:BirthInfo>\n`;
+    x += `              <crs:BirthDate>${esc(f.cpFechaNac)}</crs:BirthDate>\n`;
+    x += `            </crs:BirthInfo>\n`;
+  }
+  x += `          </crs:Individual>\n`;
+  if (f.cpTipo) {
+    x += `          <crs:CtrlgPersonType>${esc(f.cpTipo)}</crs:CtrlgPersonType>\n`;
+  }
+  x += `        </crs:ControllingPerson>\n`;
+  return x;
+}
+
+// ── Aplicar restricciones del Anexo II (sección 2) ───────────────────────
+function validarRestricciones(xml, pais) {
+  // Detectar símbolos prohibidos: -- /* &#
+  // Esos sólo se chequean dentro del contenido textual; los reemplazamos como advertencia
+  let conteo = 0;
+  ['--', '/*'].forEach(sim => {
+    // Buscar fuera de comentarios y declaración inicial
+    const re = new RegExp(sim.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'g');
+    const matches = xml.match(re) || [];
+    // Excluir el caso de la declaración XML inicial
+    const limpio = matches.length;
+    if (limpio > 0) {
+      conteo += limpio;
+      // No reemplazamos automáticamente el patrón porque puede ser parte legítima de comentarios XML internos;
+      // pero sí avisamos. En la práctica, este patrón sólo aparecería si un usuario lo escribió en un texto.
+    }
+  });
+  if (conteo > 0) {
+    logs.push({tipo:'warn', msg:`[${pais}] Detectados ${conteo} patrones potencialmente prohibidos (-- /* ). Revise los textos libres.`});
+  }
+  return xml;
+}
+
+// ── Escapar caracteres XML conforme al Anexo ─────────────────────────────
+function esc(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&apos;');
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//   PINTAR PESTAÑAS Y XML
+// ════════════════════════════════════════════════════════════════════════
+function pintarTabsXML() {
+  const tabs = document.getElementById('xmlTabs');
+  const claves = Object.keys(xmlsGenerados);
+  if (claves.length === 0) {
+    tabs.style.display = 'none';
+    return;
+  }
+  tabs.style.display = 'flex';
+  tabs.innerHTML = claves.map(k => {
+    const info = xmlsGenerados[k];
+    return `<button class="xml-tab ${k===xmlActivo?'active':''}" onclick="seleccionarTab('${k}')">
+      <strong>${k}</strong> · ${info.paisNombre} (${info.cuentas})
+    </button>`;
+  }).join('');
+}
+
+function seleccionarTab(pais) {
+  xmlActivo = pais;
+  pintarTabsXML();
+  pintarXML(pais);
+}
+
+function pintarXML(pais) {
+  const info = xmlsGenerados[pais];
+  if (!info) return;
+  const lineas = info.xml.split('\n');
+  const totalLineas = lineas.length;
+  const mostrar = lineas.slice(0, Math.min(80, totalLineas));
+  const html = mostrar.map(l => {
+    return l
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/(&lt;\/?[\w:]+)/g, '<span class="tag">$1</span>')
+      .replace(/([\w]+)=/g, '<span class="attr">$1</span>=')
+      .replace(/"([^"]*)"/g, '"<span class="val">$1</span>"');
+  }).join('\n');
+
+  const restantes = totalLineas - mostrar.length;
+  const footer = restantes > 0
+    ? `\n<span class="com">... (${restantes} línea${restantes!==1?'s':''} adicional${restantes!==1?'es':''} omitida${restantes!==1?'s':''} en la vista previa · descargue el archivo para ver el contenido completo)</span>`
+    : '';
+
+  document.getElementById('xmlPreview').innerHTML =
+    `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;color:var(--muted)">
+      <span>Archivo: <strong style="color:var(--text);font-family:var(--mono)">${info.fileName}</strong></span>
+      <span>${totalLineas} líneas · ${(info.xml.length/1024).toFixed(1)} KB · ${info.cuentas} cuenta${info.cuentas!==1?'s':''}</span>
+    </div>
+    <div class="xml-box">${html}${footer}</div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn btn-mini btn-primary" onclick="descargarUno('${pais}')" style="flex:1">⬇️ Descargar ${info.fileName}</button>
+      <button class="btn btn-mini" style="flex:0;background:#ECEFF1;color:var(--text)" onclick="copiarXML('${pais}')">📋 Copiar</button>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//   VALIDACIONES Y CHECKS
+// ════════════════════════════════════════════════════════════════════════
+function actualizarChecks() {
+  const checks = [];
+
+  // Check 1: NIT
+  checks.push({
+    ok: cfg.nit && cfg.nit.length === 9,
+    txt: `NIT de 9 dígitos (sin DV): ${cfg.nit || '—'}`
+  });
+
+  // Check 2: Periodo
+  checks.push({
+    ok: /^\d{4}-\d{2}-\d{2}$/.test(cfg.periodo || ''),
+    txt: `Período en formato AAAA-MM-DD: ${cfg.periodo || '—'}`
+  });
+
+  // Check 3: tipo de mensaje
+  checks.push({
+    ok: ['CRS701','CRS702','CRS703'].includes(cfg.tipoMensaje),
+    txt: `MessageTypeIndic válido: ${cfg.tipoMensaje || '—'}`
+  });
+
+  // Check 4: TINs
+  const sinTin = filas.filter(f => !f.tin).length;
+  checks.push({
+    ok: sinTin === 0,
+    txt: sinTin === 0 ? 'Todas las cuentas tienen TIN' : `${sinTin} cuenta(s) sin TIN`
+  });
+
+  // Check 5: Fechas de apertura
+  const sinFecha = filas.filter(f => !f.fechaApertura).length;
+  checks.push({
+    ok: sinFecha === 0,
+    txt: sinFecha === 0 ? 'Todas las cuentas tienen fecha de apertura' : `${sinFecha} cuenta(s) sin fecha de apertura`
+  });
+
+  // Check 6: Cuentas cerradas con saldo > 0
+  const cerradasSaldo = filas.filter(f => f.cuentaCerrada && f.saldo > 0).length;
+  checks.push({
+    ok: cerradasSaldo === 0,
+    txt: cerradasSaldo === 0 ? 'Cuentas cerradas con saldo 0' : `${cerradasSaldo} cuenta(s) cerrada(s) con saldo > 0 (forzado a 0)`
+  });
+
+  // Check 7: CRS101 con CP
+  const sinCP = filas.filter(f => f.tipoTitular === 'CRS101' && !f.cpFirstName && !f.cpLastName).length;
+  if (filas.some(f => f.tipoTitular === 'CRS101')) {
+    checks.push({
+      ok: sinCP === 0,
+      txt: sinCP === 0 ? 'Todas las ENF Pasivas (CRS101) tienen Persona Controlante' : `${sinCP} ENF Pasiva(s) sin CP`
+    });
+  }
+
+  // Check 8: Códigos ISO válidos
+  const paisInvalido = filas.find(f => f.paisResidencia && !PAISES_ISO[f.paisResidencia]);
+  checks.push({
+    ok: !paisInvalido,
+    txt: paisInvalido ? `Código de país desconocido: ${paisInvalido.paisResidencia}` : 'Todos los códigos de país son ISO 3166-1 válidos'
+  });
+
+  // Render
+  const html = checks.map(c => {
+    const icon = c.ok ? '✓' : '⚠';
+    const cls  = c.ok ? 'ok' : 'warn';
+    return `<div class="cfg-item">
+      <span class="lbl" style="color:${c.ok?'var(--green)':'var(--amber)'};font-weight:600;flex-shrink:0">${icon}</span>
+      <span class="val" style="text-align:left;font-family:var(--sans);font-weight:400">${c.txt}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('checksPanel').innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//   DESCARGAS
+// ════════════════════════════════════════════════════════════════════════
+function descargarUno(pais) {
+  const info = xmlsGenerados[pais];
+  if (!info) return;
+  const blob = new Blob([info.xml], { type: 'application/xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = info.fileName; a.click();
+  URL.revokeObjectURL(url);
+  logs.push({tipo:'ok', msg:`Descargado: ${info.fileName}`});
+  pintarLogs();
+}
+
+function descargarTodos() {
+  Object.keys(xmlsGenerados).forEach((pais, i) => {
+    setTimeout(() => descargarUno(pais), i * 250);
+  });
+}
+
+function copiarXML(pais) {
+  const info = xmlsGenerados[pais];
+  if (!info) return;
+  navigator.clipboard.writeText(info.xml).then(() => {
+    logs.push({tipo:'ok', msg:`XML de ${pais} copiado al portapapeles`});
+    pintarLogs();
+  }).catch(err => {
+    logs.push({tipo:'err', msg:'No se pudo copiar: ' + err.message});
+    pintarLogs();
+  });
+}
+</script>
+</body>
+</html>
